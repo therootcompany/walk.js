@@ -1,16 +1,27 @@
-import Walk from "../index.js";
 import path from "path";
+//import { walk } from "../index.js";
+
+import Walk from "../index.js";
+var walk = Walk.create({
+  sort: function (ents) {
+    return ents.filter(function (ent) {
+      return !ent.name.startsWith(".");
+    });
+  },
+});
 
 var rootpath = process.argv[2] || ".";
 
-Walk.walk(rootpath, async function (err, pathname, dirent) {
+walk(rootpath, async function (err, pathname, dirent) {
   if (err) {
     throw err;
   }
 
+  /*
   if (dirent.name.startsWith(".")) {
     return false;
   }
+  */
 
   var entType;
   if (dirent.isDirectory()) {

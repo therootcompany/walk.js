@@ -1,13 +1,16 @@
+// ECMAScript 2021
+// (or Vanilla JS)
 import { promises as fs } from "fs";
+// or let fs = require("fs").promises;
 import path from "path";
-
-const _withFileTypes = { withFileTypes: true };
-const skipDir = new Error("skip this directory");
-const pass = (err) => err;
+// or let path = require("path");
 
 // a port of Go's filepath.Walk
-const walk = async (pathname, walkFunc, _dirent) => {
+async function walk(pathname, walkFunc, _dirent) {
   let err;
+  function pass(e) {
+    return e;
+  }
 
   // special case of the very first run
   if (!_dirent) {
@@ -22,7 +25,7 @@ const walk = async (pathname, walkFunc, _dirent) => {
 
   // run the user-supplied function and either skip, bail, or continue
   err = await walkFunc(err, pathname, _dirent).catch(pass);
-  if (false === err || skipDir === err) {
+  if (false === err) {
     return;
   }
   if (err instanceof Error) {
@@ -33,16 +36,20 @@ const walk = async (pathname, walkFunc, _dirent) => {
   if (!_dirent.isDirectory()) {
     return;
   }
-  let result = await fs.readdir(pathname, _withFileTypes).catch(pass);
+  let result = await fs.readdir(pathname, { withFileTypes: true }).catch(pass);
   if (result instanceof Error) {
     return walkFunc(result, pathname, _dirent);
   }
   for (let dirent of result) {
     await walk(path.join(pathname, dirent.name), walkFunc, dirent);
   }
-};
+}
 
-export default {
-  walk,
-  skipDir,
-};
+walk("./", function (err, pathname, dirent) {
+  if (dirent.name.startsWith(".")) {
+    return Promise.resolve(false);
+  }
+
+  console.log(path.resolve(pathname));
+  return Promise.resolve(true);
+});

@@ -6,7 +6,8 @@
   "main": "index.js",
   "type": "module",
   "files": [
-    "walk.js"
+    "walk.js",
+    "create.js"
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

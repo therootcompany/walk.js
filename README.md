@@ -2,6 +2,9 @@
 
 Walk a directory recursively and handle each entity (files, directories, symlnks, etc).
 
+(a port of Go's [`filepath.Walk`](https://golang.org/pkg/path/filepath/#Walk)
+using Node.js v10+'s `fs.readdir`'s `withFileTypes` and ES 2021)
+
 ```js
 await Walk.walk(pathname, walkFunc);
 
@@ -10,8 +13,16 @@ function walkFunc(err, pathname, dirent) {
 }
 ```
 
-This is a port of Go's [`filepath.Walk`](https://golang.org/pkg/path/filepath/#Walk)
-for Node.js v10+ (which introduced `fs.readdir` `withFileTypes`) and ES 2021.
+Where
+
+- `err` is a failure to lstat a file or directory
+- `pathname` may be relative
+- `dirent` is an `fs.Dirent` that has
+  - `dirent.name`
+  - `dirent.isFile()`
+  - `dirent.isDirectory()`
+  - `dirent.isSymbolicLink()`
+  - etc
 
 # Examples
 

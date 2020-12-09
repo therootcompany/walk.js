@@ -1,10 +1,9 @@
 // a port of Go's filepath.Walk
 
 import { promises as fs } from "fs";
-import { skipDir } from "./walk.js";
+import Walk from "./walk.js";
 import path from "path";
 
-var Walk = {};
 var _withFileTypes = { withFileTypes: true };
 var _noopts = {};
 
@@ -12,97 +11,64 @@ function pass(err) {
   return err;
 }
 
-function skipOrThrow(err) {
-  if (!(err instanceof Error)) {
-    // go
-    return false;
-  }
-  if (false === err || skipDir === err) {
-    // skip
-    return true;
-  }
-  // throw
-  throw err;
-}
-
-Walk.skipDir = skipDir;
-
 Walk.create = function (opts) {
-  async function _walk(root, walker) {
-    if (!opts) {
-      opts = _noopts;
+  if (!opts) {
+    opts = _noopts;
+  }
+
+  // a port of Go's filepath.Walk
+  const _walk = async (pathname, walkFunc, _dirent) => {
+    let err;
+
+    // special case of the very first run
+    if (!_dirent) {
+      _dirent = pathname;
     }
 
-    // Special case of the very first item, root
-    var err;
-    var stat = await fs.lstat(root).catch(function (e) {
-      err = e;
-      return null;
-    });
-    if (stat) {
-      stat.name = path.basename(path.resolve(root));
+    // the first run, or if false === withFileTypes
+    if ("string" === typeof _dirent) {
+      let _name = path.basename(path.resolve(pathname));
+      _dirent = await fs.lstat(pathname).catch(pass);
+      if (_dirent instanceof Error) {
+        err = _dirent;
+      } else {
+        _dirent.name = _name;
+      }
     }
 
-    /* similar to function in main walk loop */
-    var uerr = await walker(err, root, stat).then(pass).catch(pass);
-    if (skipOrThrow(uerr) || err) {
+    // run the user-supplied function and either skip, bail, or continue
+    err = await walkFunc(err, pathname, _dirent).catch(pass);
+    if (false === err || Walk.skipDir === err) {
+      return;
+    }
+    if (err instanceof Error) {
+      throw err;
+    }
+
+    // "walk does not follow symbolic links"
+    if (!_dirent || !_dirent.isDirectory()) {
       return;
     }
 
-    if (false === opts.withFileTypes) {
-      stat = stat.name;
+    // lightweight dirents or full lstat
+    let _readdirOpts;
+    if (!opts.withFileStats) {
+      _readdirOpts = _withFileTypes;
+    }
+
+    // TODO check if the error is "not a directory"
+    // (and thus allow false === opts.withFileTypes)
+    let result = await fs.readdir(pathname, _readdirOpts).catch(pass);
+    if (result instanceof Error) {
+      return walkFunc(result, pathname, _dirent);
     }
     if (opts.sort) {
-      stat = (opts.sort([stat]) || [])[0];
+      result = opts.sort(result);
     }
-
-    if (stat && stat.isDirectory()) {
-      return _walkHelper(root, stat, walker, opts);
+    for (let entity of result) {
+      await _walk(path.join(pathname, entity.name || entity), walkFunc, entity);
     }
-    /* end */
-
-    async function _walkHelper(root, prevEnt, walker, opts) {
-      var err;
-      var _readdirOpts;
-      if (false !== opts.withFileTypes) {
-        _readdirOpts = _withFileTypes;
-      }
-      var dirents = await fs.readdir(root, _readdirOpts).catch(function (e) {
-        err = e;
-      });
-      if (err) {
-        return walker(err, root, prevEnt);
-      }
-      if (opts.sort) {
-        dirents = opts.sort(dirents);
-      }
-
-      var dirent;
-      var pathname;
-      for (dirent of dirents) {
-        if ("string" === typeof dirent) {
-          pathname = path.join(root, dirent);
-          dirent = await fs.lstat(path.join(root)).catch(function (e) {
-            err = e;
-          });
-        } else {
-          pathname = path.join(root, dirent.name);
-        }
-
-        /* main inner loop */
-        err = await walker(err, pathname, dirent).then(pass).catch(pass);
-        if (skipOrThrow(err)) {
-          continue;
-        }
-
-        // "walk does not follow symbolic links"
-        if (dirent.isDirectory()) {
-          await _walkHelper(path.join(root, dirent.name), dirent, walker, opts);
-        }
-        /* end */
-      }
-    }
-  }
+  };
 
   return _walk;
 };
