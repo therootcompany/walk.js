@@ -1,6 +1,6 @@
 {
   "name": "@root/walk",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "fs.walk for node (as a port of Go's filepath.Walk)",
   "homepage": "https://git.rootprojects.org/root/walk.js",
   "main": "index.js",
