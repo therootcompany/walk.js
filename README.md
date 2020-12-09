@@ -1,42 +1,90 @@
 # Walk.js (@root/walk)
 
-A port of Go's [`filepath.Walk`](https://golang.org/pkg/path/filepath/#Walk) for Node.js v10+ (which introduced `fs.readdir` `withFileTypes`).
+Walk a directory recursively and handle each entity (files, directories, symlnks, etc).
 
 ```js
-await Walk.walk(rootpath, walkFunc);
+await Walk.walk(pathname, walkFunc);
+
+function walkFunc(err, pathname, dirent) {
+  // ...
+}
 ```
 
-# Example
+This is a port of Go's [`filepath.Walk`](https://golang.org/pkg/path/filepath/#Walk)
+for Node.js v10+ (which introduced `fs.readdir` `withFileTypes`) and ES 2021.
+
+# Examples
+
+You can use this with Node v12+ using Vanilla JS or ES2021.
+
+## ES 2021 Modules
+
+`@root/walk` can be used with async/await or Promises.
 
 ```js
-import Walk from "walk";
+import { walk } from "@root/walk";
+import path from "path";
 
-Walk.walk("./", function (err, pathname, dirent) {
+await walk("./", async (err, pathname, dirent) => {
+  if (err) {
+    // throw an error to stop walking
+    // (or return to ignore and keep going)
+    console.warn("fs stat error for %s: %s", pathname, err.message);
+    return;
+  }
+
+  // return false to skip a directory
+  // (ex: skipping "dot files")
+  if (dirent.isDirectory() && dirent.name.startsWith(".")) {
+    return false;
+  }
+
+  // fs.Dirent is a slimmed-down, faster version of fs.Stat
+  console.log("name:", dirent.name, "in", path.dirname(pathname));
+  // (only one of these will be true)
+  console.log("is file?", dirent.isFile());
+  console.log("is link?", dirent.isSymbolicLink());
+});
+
+console.log("Done");
+```
+
+## Vanilla JS (ES5)
+
+```js
+var Walk = require("@root/walk");
+var path = require("path");
+
+Walk.walk("./", function walkFunc(err, pathname, dirent) {
   if (err) {
     throw err;
   }
 
-  // ignore dot files
-  if (dirent.name.startsWith(".")) {
-    return Walk.skipDir;
+  if (dirent.isDirectory() && dirent.name.startsWith(".")) {
+    return Promise.resolve(false);
   }
+  console.log("name:", dirent.name, "in", path.dirname(pathname));
+
+  return Promise.resolve();
+}).then(function () {
+  console.log("Done");
 });
 ```
 
 # API Documentation
 
-`Walk.walk` walks `rootpath` (inclusive) and calls `walkFunc` for each file system entry.
+`Walk.walk` walks `pathname` (inclusive) and calls `walkFunc` for each file system entry.
 
 It can be used with Promises:
 
 ```js
-Walk.walk(rootpath, promiseWalker).then(doMore);
+Walk.walk(pathname, promiseWalker).then(doMore);
 ```
 
 Or with async / await:
 
 ```js
-await Walk.walk(rootpath, asyncWalker);
+await Walk.walk(pathname, asyncWalker);
 ```
 
 The behavior should exactly match Go's

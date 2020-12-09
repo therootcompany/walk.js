@@ -1,4 +1,4 @@
-import Walk from "../walk.mjs";
+import Walk from "../index.js";
 import path from "path";
 
 var rootpath = process.argv[2] || ".";
@@ -6,6 +6,10 @@ var rootpath = process.argv[2] || ".";
 Walk.walk(rootpath, async function (err, pathname, dirent) {
   if (err) {
     throw err;
+  }
+
+  if (dirent.name.startsWith(".")) {
+    return false;
   }
 
   var entType;
@@ -18,7 +22,7 @@ Walk.walk(rootpath, async function (err, pathname, dirent) {
   } else {
     entType = "----";
   }
-  console.info("[%s] %s", entType, path.dirname(pathname), dirent.name);
+  console.info("[%s] %s", entType, path.dirname(path.resolve(pathname)), dirent.name);
 }).catch(function (err) {
   console.error(err.stack);
 });

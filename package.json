@@ -1,11 +1,26 @@
 {
-  "name": "walk",
+  "name": "@root/walk",
   "version": "1.0.0",
-  "description": "",
+  "description": "fs.walk for node (as a port of Go's filepath.Walk)",
+  "homepage": "https://git.rootprojects.org/root/walk.js",
   "main": "index.js",
+  "type": "module",
+  "files": [
+    "walk.js"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "AJ ONeal <coolaj86@gmail.com> (https://coolaj86.com/)",
-  "license": "MIT"
+  "repository": {
+    "type": "git",
+    "url": "https://git.rootprojects.org/root/walk.js.git"
+  },
+  "keywords": [
+    "fs",
+    "walk",
+    "filepath",
+    "os"
+  ],
+  "author": "AJ ONeal <aj@therootcompany.com> (https://rootprojects.org/)",
+  "license": "MPL-2.0"
 }
