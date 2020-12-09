@@ -1,16 +1,13 @@
+"use strict";
+
+const fs = require("fs").promises;
+const Walk = require("./walk.js");
+const path = require("path");
+const _withFileTypes = { withFileTypes: true };
+const _noopts = {};
+const _pass = (err) => err;
+
 // a port of Go's filepath.Walk
-
-import { promises as fs } from "fs";
-import Walk from "./walk.js";
-import path from "path";
-
-var _withFileTypes = { withFileTypes: true };
-var _noopts = {};
-
-function pass(err) {
-  return err;
-}
-
 Walk.create = function (opts) {
   if (!opts) {
     opts = _noopts;
@@ -28,7 +25,7 @@ Walk.create = function (opts) {
     // the first run, or if false === withFileTypes
     if ("string" === typeof _dirent) {
       let _name = path.basename(path.resolve(pathname));
-      _dirent = await fs.lstat(pathname).catch(pass);
+      _dirent = await fs.lstat(pathname).catch(_pass);
       if (_dirent instanceof Error) {
         err = _dirent;
       } else {
@@ -37,7 +34,7 @@ Walk.create = function (opts) {
     }
 
     // run the user-supplied function and either skip, bail, or continue
-    err = await walkFunc(err, pathname, _dirent).catch(pass);
+    err = await walkFunc(err, pathname, _dirent).catch(_pass);
     if (false === err || Walk.skipDir === err) {
       return;
     }
@@ -58,7 +55,7 @@ Walk.create = function (opts) {
 
     // TODO check if the error is "not a directory"
     // (and thus allow false === opts.withFileTypes)
-    let result = await fs.readdir(pathname, _readdirOpts).catch(pass);
+    let result = await fs.readdir(pathname, _readdirOpts).catch(_pass);
     if (result instanceof Error) {
       return walkFunc(result, pathname, _dirent);
     }
@@ -73,4 +70,4 @@ Walk.create = function (opts) {
   return _walk;
 };
 
-export default Walk;
+module.exports = Walk;

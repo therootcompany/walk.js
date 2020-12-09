@@ -4,12 +4,12 @@
   "description": "fs.walk for node (as a port of Go's filepath.Walk)",
   "homepage": "https://git.rootprojects.org/root/walk.js",
   "main": "index.js",
-  "type": "module",
   "files": [
     "walk.js",
     "create.js"
   ],
   "scripts": {
+    "prettier": "npx prettier --write '**/*.{md,js,mjs,cjs}'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

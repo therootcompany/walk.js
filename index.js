@@ -1,6 +1,4 @@
-import Walk from "./walk.js";
-import Walk2 from "./create.js";
+"use strict";
 
-Walk.create = Walk2.create;
-
-export default Walk;
+module.exports = require("./walk.js");
+module.exports.create = require("./create.js").create;

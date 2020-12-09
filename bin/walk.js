@@ -1,14 +1,20 @@
-import path from "path";
-//import { walk } from "../index.js";
+"use strict";
 
-import Walk from "../index.js";
-var walk = Walk.create({
-  sort: function (ents) {
-    return ents.filter(function (ent) {
-      return !ent.name.startsWith(".");
-    });
-  },
-});
+var path = require("path");
+var Walk = require("../index.js");
+
+var walk = Walk.walk;
+var alt = process.argv[2];
+
+if (alt) {
+  walk = Walk.create({
+    sort: function (ents) {
+      return ents.filter(function (ent) {
+        return !ent.name.startsWith(".");
+      });
+    },
+  });
+}
 
 var rootpath = process.argv[2] || ".";
 
@@ -17,23 +23,21 @@ walk(rootpath, async function (err, pathname, dirent) {
     throw err;
   }
 
-  /*
-  if (dirent.name.startsWith(".")) {
-    return false;
+  if (!alt) {
+    if (dirent.name.startsWith(".")) {
+      return false;
+    }
   }
-  */
 
-  var entType;
+  var entType = "?";
   if (dirent.isDirectory()) {
-    entType = " dir";
+    entType = "d";
   } else if (dirent.isFile()) {
-    entType = "file";
+    entType = "f";
   } else if (dirent.isSymbolicLink()) {
-    entType = "link";
-  } else {
-    entType = "----";
+    entType = "@";
   }
-  console.info("[%s] %s", entType, path.dirname(path.resolve(pathname)), dirent.name);
+  console.info("%s %s", entType, path.dirname(path.resolve(pathname)), dirent.name);
 }).catch(function (err) {
   console.error(err.stack);
 });

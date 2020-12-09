@@ -1,8 +1,10 @@
-import { promises as fs } from "fs";
-import path from "path";
+"use strict";
 
-const _withFileTypes = { withFileTypes: true };
+const fs = require("fs").promises;
+const path = require("path");
+
 const skipDir = new Error("skip this directory");
+const _withFileTypes = { withFileTypes: true };
 const pass = (err) => err;
 
 // a port of Go's filepath.Walk
@@ -42,7 +44,7 @@ const walk = async (pathname, walkFunc, _dirent) => {
   }
 };
 
-export default {
+module.exports = {
   walk,
   skipDir,
 };
