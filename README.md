@@ -1,4 +1,4 @@
-# Walk.js (@root/walk)
+# [Walk.js](https://git.rootprojects.org/root/walk.js) (@root/walk)
 
 Walk a directory recursively and handle each entity (files, directories, symlnks, etc).
 
